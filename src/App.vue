@@ -1,10 +1,19 @@
 <template>
   <div class="container">
     <h2>Super Mario Galaxy 2 Time Tracker</h2>
+    <p>
+      Enter in the times you get in-game in the boxes below.
+      On the right, the "Remaining" will be <span class="yellow">yellow</span> if you haven't entered in everything,
+      and will be <span class="red">red</span> if you still need to lower your time,
+      or <span class="green">green</span> if you've made it.
+    </p>
+    <p>
+      This is used for tracking the <a href="https://retroachievements.org/game/36068" target="_blank">Time Attack subset</a> for Super Mario Galaxy 2 on RetroAchievements.
+    </p>
 
     <div class="buttons">
-      <button @click="exportData">Export JSON</button>
-      <label class="button">Import JSON <input type="file" hidden @change="importData" /></label>
+      <button @click="exportData">Export</button>
+      <label class="button">Import <input type="file" hidden @change="importData" /></label>
     </div>
 
     <table>
