@@ -66,7 +66,7 @@ input {
   margin-bottom: 12px;
 }
 
-button {
+button, .button {
   margin-right: 8px;
   padding: 8px 16px;
   background: transparent;
@@ -78,7 +78,7 @@ button {
   transition: all 0.2s ease;
 }
 
-button:hover {
+button:hover, .button:hover {
   color: white;
   border-color: white;
 }

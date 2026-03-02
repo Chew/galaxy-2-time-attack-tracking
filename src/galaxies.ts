@@ -1,4 +1,19 @@
-export const galaxiesData = [
+export interface Galaxy {
+  name: string;
+  normalStars: number;
+  greenStars: number;
+  requiredMins: number;
+  requiredSecs: number;
+}
+
+export interface GalaxyState extends Galaxy {
+  required: number;
+  times: {
+    [k: string]: string;
+  };
+}
+
+export const galaxiesData: Galaxy[] = [
     // WORLD 1
   { name: "Sky Station Galaxy", normalStars: 3, greenStars: 3, requiredMins: 5, requiredSecs: 20 },
   { name: "Yoshi Star Galaxy", normalStars: 3, greenStars: 3, requiredMins: 5, requiredSecs: 0 },
