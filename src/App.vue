@@ -1,107 +1,220 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-import { ref } from 'vue'
-
-const name = ref('Unknown')
-
-const getName = async () => {
-  const res = await fetch('/api/')
-  const data = await res.json()
-  name.value = data.name
-}
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="container">
+    <h2>Super Mario Galaxy 2 Time Tracker</h2>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-      <button class="green" @click="getName" aria-label="get name">
-        Name from API is: {{ name }}
-      </button>
-      <p>Edit <code>server/index.ts</code> to change what the API gets</p>
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+    <div class="buttons">
+      <button @click="exportData">Export JSON</button>
+      <button @click="importClick">Import JSON</button>
+      <input
+          ref="fileInput"
+          type="file"
+          accept="application/json"
+          hidden
+          @change="importData"
+      />
     </div>
-  </header>
 
-  <RouterView />
+    <table>
+      <thead>
+      <tr>
+        <th>Galaxy</th>
+        <th>Star 1</th>
+        <th>Star 2</th>
+        <th>Star 3</th>
+        <th>Green 1</th>
+        <th>Green 2</th>
+        <th>Green 3</th>
+        <th>Total</th>
+        <th>Required</th>
+        <th>Remaining</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr v-for="g in galaxies" :key="g.name">
+        <td class="galaxy">{{ g.name }}</td>
+
+        <td v-for="i in 3" :key="'star' + i">
+          <input
+              v-if="i <= g.normalStars"
+              v-model="g.times['star' + i]"
+              placeholder="00:00.000"
+          />
+        </td>
+        <td v-for="i in 3" :key="'green' + i">
+          <input
+              v-if="i <= g.greenStars"
+              v-model="g.times['green' + i]"
+              placeholder="00:00.000"
+          />
+        </td>
+
+        <td>{{ formatMs(totalTime(g)) }}</td>
+        <td>{{ formatMs(g.required) }}</td>
+        <td>{{ formatMs(remaining(g)) }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script setup>
+import { ref, watch, onMounted } from "vue";
+import { galaxiesData } from "./galaxies.js";
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+/* -----------------------------
+   CONFIG
+------------------------------ */
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
+const STORAGE_KEY = "smg2-galaxy-times";
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
+const timeFields = [
+  "star1",
+  "star2",
+  "star3",
+  "green1",
+  "green2",
+  "green3"
+];
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
+/* -----------------------------
+   STATE
+------------------------------ */
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
+const galaxies = ref(
+    galaxiesData.map(g => ({
+      ...g,
+      required: (g.requiredMins * 60 + g.requiredSecs) * 1000,
+      times: Object.fromEntries(timeFields.map(f => [f, ""]))
+    }))
+);
 
-nav a:first-of-type {
-  border: 0;
-}
+/* -----------------------------
+   TIME UTILS
+------------------------------ */
 
-button {
-  background-color: hsla(160, 100%, 37%, 1);
-  color: var(--color-background);
-  border: 0;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  margin: 1rem 0 0.5rem 0;
-}
+function parseTime(str) {
+  if (!str) return 0;
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+  // Flexible regex to handle missing leading zeros or different separators
+  const match = str.match(/^(?:(\d+):)?(\d{1,2})\.(\d{1,3})$/);
+  if (!match) {
+    // Try simple seconds.ms
+    const simpleMatch = str.match(/^(\d{1,2})\.(\d{1,3})$/);
+    if (simpleMatch) {
+      const [, s, ms] = simpleMatch.map(Number);
+      return s * 1000 + ms;
+    }
+    return 0;
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+  const m = parseInt(match[1] || "0", 10);
+  const s = parseInt(match[2], 10);
+  let msStr = match[3];
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+  const ms = parseInt(msStr.padEnd(3, "0").substring(0, 3), 10);
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+  return m * 60000 + s * 1000 + ms;
 }
-</style>
+
+function formatMs(ms) {
+  ms = Math.max(0, Math.floor(ms));
+
+  const m = Math.floor(ms / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const milli = ms % 1000;
+
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${String(milli).padStart(3,"0")}`;
+}
+
+/* -----------------------------
+   CALCULATIONS
+------------------------------ */
+
+function totalTime(galaxy) {
+  return timeFields.reduce(
+      (sum, f) => sum + parseTime(galaxy.times[f]),
+      0
+  );
+}
+
+function remaining(galaxy) {
+  return galaxy.required - totalTime(galaxy);
+}
+
+/* -----------------------------
+   LOCAL STORAGE
+------------------------------ */
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(galaxies.value));
+}
+
+function load() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const loadedData = JSON.parse(raw);
+    if (!Array.isArray(loadedData)) return;
+
+    galaxies.value = galaxiesData.map(g => {
+      const loaded = loadedData.find(l => l.name === g.name);
+      return {
+        ...g,
+        required: (g.requiredMins * 60 + g.requiredSecs) * 1000,
+        times: (loaded && loaded.times) ? loaded.times : Object.fromEntries(timeFields.map(f => [f, ""]))
+      };
+    });
+  } catch {}
+}
+
+watch(galaxies, save, { deep: true });
+
+onMounted(load);
+
+/* -----------------------------
+   IMPORT / EXPORT
+------------------------------ */
+
+function exportData() {
+  const blob = new Blob(
+      [JSON.stringify(galaxies.value, null, 2)],
+      { type: "application/json" }
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "smg2-times.json";
+  a.click();
+}
+
+const fileInput = ref(null);
+
+function importClick() {
+  fileInput.value.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const loadedData = JSON.parse(ev.target.result);
+      galaxies.value = galaxiesData.map(g => {
+        const loaded = loadedData.find(l => l.name === g.name);
+        return {
+          ...g,
+          required: (g.requiredMins * 60 + g.requiredSecs) * 1000,
+          times: (loaded && loaded.times) ? loaded.times : Object.fromEntries(timeFields.map(f => [f, ""]))
+        };
+      });
+    } catch (err) {
+      console.error("Failed to import JSON", err);
+    }
+  };
+  reader.readAsText(file);
+}
+</script>

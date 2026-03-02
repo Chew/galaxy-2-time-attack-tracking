@@ -1,10 +1,9 @@
 @import './base.css';
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 a,
@@ -21,15 +20,65 @@ a,
   }
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+.container {
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+h2 {
+  color: rgb(204, 153, 0);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #444;
+  padding: 6px;
+  text-align: center;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: rgba(50, 50, 50, 0.4);
+}
+
+tbody tr:nth-child(even) {
+  background-color: rgb(35, 35, 35);
+}
+
+input {
+  width: 95px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  text-align: center;
+}
+
+.galaxy {
+  text-align: left;
+  font-weight: 600;
+}
+
+.buttons {
+  margin-bottom: 12px;
+}
+
+button {
+  margin-right: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  color: rgb(204, 153, 0);
+  border: 1px solid rgb(204, 153, 0);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  color: white;
+  border-color: white;
 }
