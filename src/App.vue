@@ -48,7 +48,7 @@
 
         <td>{{ formatMs(totalTime(g)) }}</td>
         <td>{{ formatMs(g.required) }}</td>
-        <td>{{ formatMs(remaining(g)) }}</td>
+        <td :class="remainingClass(g)">{{ formatMs(remaining(g)) }}</td>
       </tr>
       </tbody>
     </table>
@@ -136,7 +136,17 @@ function totalTime(galaxy: GalaxyState) {
 }
 
 function remaining(galaxy: GalaxyState) {
-  return galaxy.required - totalTime(galaxy);
+  return totalTime(galaxy) - galaxy.required;
+}
+
+function remainingClass(galaxy: GalaxyState) {
+  // Check if any required fields are empty
+  for (let i = 1; i <= 3; i++) {
+    if (i <= galaxy.normalStars && !galaxy.times['star' + i]) return 'yellow';
+    if (i <= galaxy.greenStars && !galaxy.times['green' + i]) return 'yellow';
+  }
+
+  return remaining(galaxy) > 0 ? 'red' : 'green';
 }
 
 /* -----------------------------

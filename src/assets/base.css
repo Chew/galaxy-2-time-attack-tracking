@@ -80,3 +80,15 @@ body {
 th {
   font-weight: bold;
 }
+
+.red {
+  color: rgb(240, 12, 0);
+}
+
+.yellow {
+  color: rgb(251, 191, 36);
+}
+
+.green {
+  color: rgb(74, 222, 128);
+}
