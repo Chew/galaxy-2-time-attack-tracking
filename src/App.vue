@@ -66,7 +66,7 @@
 
 <script setup lang="ts">
 import {ref, watch, onMounted, type Ref} from "vue";
-import {galaxiesData, type GalaxyState} from "./galaxies";
+import {galaxiesData, type GalaxyState, priorNames} from "./galaxies";
 
 /* -----------------------------
    CONFIG
@@ -175,7 +175,14 @@ function load() {
     if (!Array.isArray(loadedData)) return;
 
     galaxies.value = galaxiesData.map(g => {
-      const loaded = loadedData.find(l => l.name === g.name);
+      let loaded = loadedData.find(l => l.name === g.name);
+      if (!loaded) {
+        const oldName = Object.entries(priorNames).find(([, newName]) => newName === g.name)?.[0];
+        if (oldName) {
+          loaded = loadedData.find(l => l.name === oldName);
+        }
+      }
+
       return {
         ...g,
         required: (g.requiredMins * 60 + g.requiredSecs) * 1000,
@@ -219,7 +226,14 @@ function importData(e: Event) {
 
       const loadedData: GalaxyState[] = JSON.parse(result);
       galaxies.value = galaxiesData.map(g => {
-        const loaded = loadedData.find(l => l.name === g.name);
+        let loaded = loadedData.find(l => l.name === g.name);
+        if (!loaded) {
+          const oldName = Object.entries(priorNames).find(([, newName]) => newName === g.name)?.[0];
+          if (oldName) {
+            loaded = loadedData.find(l => l.name === oldName);
+          }
+        }
+
         return {
           ...g,
           required: (g.requiredMins * 60 + g.requiredSecs) * 1000,
