@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h2>Super Mario Galaxy 2 Time Tracker</h2>
+    <h1>Super Mario Galaxy 2 Time Tracker</h1>
     <p>
       Enter in the times you get in-game in the boxes below.
       On the right, the "Remaining" will be <span class="yellow">yellow</span> if you haven't entered in everything,
@@ -8,13 +8,67 @@
       or <span class="green">green</span> if you've made it.
     </p>
     <p>
-      This is used for tracking the <a href="https://retroachievements.org/game/36068" target="_blank">Time Attack subset</a> for Super Mario Galaxy 2 on RetroAchievements.
+      This is used for tracking the
+      <a href="https://retroachievements.org/game/36068" target="_blank">Speedrun Showcase subset</a>
+      for Super Mario Galaxy 2 on RetroAchievements, as well as the speedrun achievements in the base set.
     </p>
 
     <div class="buttons">
       <button @click="exportData">Export</button>
       <label class="button">Import <input type="file" hidden @change="importData" /></label>
     </div>
+
+    <h2>Base Set Achievement Tracking</h2>
+
+    <p>
+      The base set has several achievements you can earn along the way, too. These are all tracked below.
+      Click the title to view them on RetroAchievements.
+    </p>
+
+    <label>
+      <input type="checkbox" v-model="hideCompleted" />
+      Hide Completed
+    </label>
+
+    <div class="challenges-grid">
+      <template v-for="challenge in challenges" :key="challenge.raId">
+        <table v-if="!hideCompleted || challengeRemainingClass(challenge) !== 'green'">
+          <caption v-if="challenge.isWorld">
+            <h3><a :href="`https://retroachievements.org/achievement/${challenge.raId}`">{{ challenge.name }}</a></h3>
+            <p>
+              Complete the first mission of all galaxies in World {{ challenge.isWorld }}
+              in less than {{ challenge.requiredMins }} mins {{challenge.requiredSecs}} secs,
+              excluding the final Galaxy.
+            </p>
+          </caption>
+          <caption v-else>
+            <h3><a :href="`https://retroachievements.org/achievement/${challenge.raId}`">{{ challenge.name }}</a></h3>
+            <p>
+              Complete {{ challenge.missions[0]!.galaxy }} star {{ challenge.missions[0]!.mission }}
+              in less than {{ challenge.requiredMins }} mins {{challenge.requiredSecs}} secs.
+            </p>
+          </caption>
+          <thead>
+          <tr>
+            <th>Total</th>
+            <th>Required</th>
+            <th>Remaining</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{ formatMs(challengeTotalTime(challenge)) }}</td>
+            <td>{{ formatMs(challengeRequiredTime(challenge)) }}</td>
+            <td :class="challengeRemainingClass(challenge)">{{ formatMs(challengeRemainingTime(challenge)) }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </template>
+    </div>
+
+    <h2>Table and Subset Tracking</h2>
+
+    <p>All your tracking for your missions and the total needed for the subset are listed here.</p>
 
     <table>
       <thead>
@@ -65,14 +119,16 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch, onMounted, type Ref} from "vue";
+import {ref, watch, onMounted} from "vue";
 import {galaxiesData, type GalaxyState, priorNames} from "./galaxies";
+import {challenges, type Challenge} from "@/base.ts";
 
 /* -----------------------------
    CONFIG
 ------------------------------ */
 
 const STORAGE_KEY = "smg2-galaxy-times";
+const HIDE_COMPLETED_KEY = "smg2-hide-completed";
 
 const timeFields = [
   "star1",
@@ -94,6 +150,12 @@ const galaxies = ref(
       times: Object.fromEntries(timeFields.map(f => [f, ""]))
     }))
 );
+
+const hideCompleted = ref(false);
+
+const baseRuns = ref(
+    challenges
+)
 
 /* -----------------------------
    TIME UTILS
@@ -158,15 +220,54 @@ function remainingClass(galaxy: GalaxyState) {
   return remaining(galaxy) > 0 ? 'red' : 'green';
 }
 
+function challengeRequiredTime(challenge: Challenge) {
+  return (challenge.requiredMins * 60 + challenge.requiredSecs) * 1000;
+}
+
+function challengeTotalTime(challenge: Challenge) {
+  let total = 0;
+  for (const mission of challenge.missions) {
+    const galaxy = galaxies.value.find(g => g.name === mission.galaxy);
+    if (galaxy) {
+      const timeStr = galaxy.times['star' + mission.mission];
+      if (timeStr) {
+        total += parseTime(timeStr);
+      }
+    }
+  }
+  return total;
+}
+
+function challengeRemainingTime(challenge: Challenge) {
+  return challengeTotalTime(challenge) - challengeRequiredTime(challenge);
+}
+
+function challengeRemainingClass(challenge: Challenge) {
+  for (const mission of challenge.missions) {
+    const galaxy = galaxies.value.find(g => g.name === mission.galaxy);
+    if (!galaxy || !galaxy.times['star' + mission.mission]) return 'yellow';
+  }
+
+  return challengeRemainingTime(challenge) > 0 ? 'red' : 'green';
+}
+
 /* -----------------------------
    LOCAL STORAGE
 ------------------------------ */
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(galaxies.value));
+  localStorage.setItem(HIDE_COMPLETED_KEY, JSON.stringify(hideCompleted.value));
 }
 
 function load() {
+  const hideCompletedRaw = localStorage.getItem(HIDE_COMPLETED_KEY);
+  if (hideCompletedRaw) {
+    try {
+      hideCompleted.value = JSON.parse(hideCompletedRaw);
+    } catch {}
+  }
+
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return;
 
@@ -193,6 +294,7 @@ function load() {
 }
 
 watch(galaxies, save, { deep: true });
+watch(hideCompleted, save);
 
 onMounted(load);
 
@@ -219,7 +321,7 @@ function importData(e: Event) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = () => {
     try {
       const result = reader.result;
       if (typeof result !== "string") return;
