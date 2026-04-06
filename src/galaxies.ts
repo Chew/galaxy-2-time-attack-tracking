@@ -43,8 +43,8 @@ export const galaxiesData: Galaxy[] = [
   { name: "Flipsville Galaxy", normalStars: 3, greenStars: 3, requiredMins: 4, requiredSecs: 30 },
   { name: "Starshine Beach Galaxy", normalStars: 3, greenStars: 3, requiredMins: 5, requiredSecs: 0 },
   { name: "Chompworks Galaxy", normalStars: 3, greenStars: 3, requiredMins: 5, requiredSecs: 20 },
-  { name: "Sweet Mystery Galaxy", normalStars: 3, greenStars: 3, requiredMins: 2, requiredSecs: 10 },
-  { name: "Honeyhop Galaxy", normalStars: 3, greenStars: 3, requiredMins: 5, requiredSecs: 30 },
+  { name: "Sweet Mystery Galaxy", normalStars: 2, greenStars: 2, requiredMins: 2, requiredSecs: 10 },
+  { name: "Honeyhop Galaxy", normalStars: 2, greenStars: 2, requiredMins: 5, requiredSecs: 30 },
   { name: "Bowser's Gravity Gauntlet", normalStars: 2, greenStars: 2, requiredMins: 4, requiredSecs: 30 },
     // WORLD 5
   { name: "Space Storm Galaxy", normalStars: 3, greenStars: 3, requiredMins: 4, requiredSecs: 0 },
