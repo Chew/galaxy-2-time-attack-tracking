@@ -48,8 +48,8 @@ export const challenges: Challenge[] = [
         name: "Desert Rush",
         raId: 562756,
         missions: [{
-            galaxy: "Tall Trunk Galaxy",
-            mission: 2
+            galaxy: "Clockwork Ruins Galaxy",
+            mission: 3
         }],
         requiredMins: 0,
         requiredSecs: 40,
