@@ -250,9 +250,6 @@ export const challenges: Challenge[] = [
         }, {
             galaxy: "Flip-Out Galaxy",
             mission: 1
-        }, {
-            galaxy: "Grandmaster Galaxy",
-            mission: 1
         }],
         requiredMins: 11,
         requiredSecs: 0
