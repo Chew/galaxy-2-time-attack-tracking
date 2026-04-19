@@ -9,7 +9,7 @@
     </p>
     <p>
       This is used for tracking the
-      <a href="https://retroachievements.org/game/36068" target="_blank">Speedrun Showcase subset</a>
+      <a href="https://retroachievements.org/game/36068" target="_blank">Time Attack subset</a>
       for Super Mario Galaxy 2 on RetroAchievements, as well as the speedrun achievements in the base set.
     </p>
 
