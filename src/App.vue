@@ -87,32 +87,40 @@
       </thead>
 
       <tbody>
-      <tr v-for="g in galaxies" :key="g.name">
-        <td class="galaxy">{{ g.name }}</td>
+      <template v-for="(g, index) in galaxies" :key="g.name">
+        <!-- Insert every 7 rows: 0,7,14,21... -->
+        <tr v-if="index % 7 === 0" class="world-row">
+          <td colspan="10">
+            <b class="galaxy">{{ worldLabel(index)  }}</b>
+          </td>
+        </tr>
+        <tr>
+          <td class="galaxy">{{ g.name }}</td>
 
-        <td v-for="i in 3" :key="'star' + i">
-          <input
-              v-if="i <= g.normalStars"
-              v-model="g.times['star' + i]"
-              placeholder="00:00.000"
-              :name="'star' + i"
-              pattern="^\d{2}:\d{2}\.\d{2}$"
-          />
-        </td>
-        <td v-for="i in 3" :key="'green' + i">
-          <input
-              v-if="i <= g.greenStars"
-              v-model="g.times['green' + i]"
-              placeholder="00:00.000"
-              :name="'star' + i"
-              pattern="^\d{2}:\d{2}\.\d{2}$"
-          />
-        </td>
+          <td v-for="i in 3" :key="'star' + i">
+            <input
+                v-if="i <= g.normalStars"
+                v-model="g.times['star' + i]"
+                placeholder="00:00.000"
+                :name="'star' + i"
+                pattern="^\d{2}:\d{2}\.\d{2}$"
+            />
+          </td>
+          <td v-for="i in 3" :key="'green' + i">
+            <input
+                v-if="i <= g.greenStars"
+                v-model="g.times['green' + i]"
+                placeholder="00:00.000"
+                :name="'star' + i"
+                pattern="^\d{2}:\d{2}\.\d{2}$"
+            />
+          </td>
 
-        <td>{{ formatMs(totalTime(g)) }}</td>
-        <td>{{ formatMs(g.required) }}</td>
-        <td :class="remainingClass(g)">{{ formatMs(remaining(g)) }}</td>
-      </tr>
+          <td>{{ formatMs(totalTime(g)) }}</td>
+          <td>{{ formatMs(g.required) }}</td>
+          <td :class="remainingClass(g)">{{ formatMs(remaining(g)) }}</td>
+        </tr>
+      </template>
       </tbody>
     </table>
   </div>
@@ -347,5 +355,17 @@ function importData(e: Event) {
     }
   };
   reader.readAsText(file);
+}
+
+/* -----------------------------
+   MISC
+------------------------------ */
+
+const worldLabel = (index: number) => {
+  const worldNum = Math.floor(index / 7) + 1
+
+  return worldNum === 7
+      ? 'World S'
+      : `World ${worldNum}`
 }
 </script>
